@@ -1,4 +1,4 @@
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   FlatList,
   Image,
   Platform,
+  TouchableOpacity,
 } from "react-native";
 import { SearchBar } from "@rneui/themed";
 import { useState, useEffect } from "react";
@@ -19,18 +20,36 @@ interface Member {
   };
 }
 
+const onMemberPress = (id: string) => {
+  router.push(`/memberPage?id=${id}`);
+};
+
 async function getMembers() {
   const members = await fetch("https://api.lagtinget.ax/api/persons.json");
   return members.json();
 }
 
-export default function ModalScreen() {
+export default function MemberScreen() {
   const [members, setMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState("");
+  const [filtered, setFiltered] = useState<Member[]>([]);
 
   useEffect(() => {
     getMembers().then((data) => setMembers(data));
   }, []);
+
+  // filtrera listan baserat på söktexten
+  useEffect(() => {
+    if (search === "") {
+      setFiltered(members);
+    } else {
+      setFiltered(
+        members.filter((member) =>
+          member.name.toLowerCase().includes(search.toLowerCase()),
+        ),
+      );
+    }
+  }, [search, members]);
 
   return (
     <View style={styles.container}>
@@ -41,27 +60,29 @@ export default function ModalScreen() {
         value={search}
         platform={Platform.OS === "ios" ? "ios" : "android"}
       ></SearchBar>
-      {members.length === 0 ? <Text>No members found.</Text> : null}
+      {filtered.length === 0 ? <Text>No members found.</Text> : null}
       <FlatList
-        data={members}
+        data={filtered}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={styles.member}>
-            <Image
-              source={
-                item.image?.url
-                  ? { uri: item.image.url }
-                  : require("../assets/avatar.webp")
-              }
-              style={{
-                width: 50,
-                height: 50,
-                borderRadius: 25,
-                marginRight: 15,
-              }}
-            />
-            <Text style={styles.memberName}>{item.name}</Text>
-          </View>
+          <TouchableOpacity onPress={() => onMemberPress(item.id.toString())}>
+            <View style={styles.member}>
+              <Image
+                source={
+                  item.image?.url
+                    ? { uri: item.image.url }
+                    : require("../assets/avatar.webp")
+                }
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 25,
+                  marginRight: 15,
+                }}
+              />
+              <Text style={styles.memberName}>{item.name}</Text>
+            </View>
+          </TouchableOpacity>
         )}
       />
 
