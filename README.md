@@ -1,3 +1,11 @@
+## För att installera ##
+
+npm install --legacy-peer-deps
+
+npx expo start
+
+Appen använder Expo 54
+
 ## Funktionalitet ##
 
 En välkomstsida med en knapp "Browse Members" där man kommer till nästa sida med Expo Router
